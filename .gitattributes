@@ -1,0 +1,13 @@
+# Set default behavior for all files
+* text=auto
+
+# Declare files that are truly binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Ensure shell scripts use LF line endings
+*.sh text eol=lf
