@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CareerForge • AI Career Decision Simulator 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(148, 163, 184, 0.25); }
+    .neon-cyan { text-shadow: 0 0 25px #22d3ee; }
+    .career-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .career-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgb(34 211 238 / 0.3); }
+  </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-screen" class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md">
+      <div class="flex items-center gap-3 justify-center mb-10">
+        <div class="w-14 h-14 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-3xl flex items-center justify-center text-4xl font-bold">🌍</div>
+        <h1 class="text-5xl font-bold neon-cyan">CareerForge</h1>
+      </div>
+
+      <div class="glass rounded-3xl p-8">
+        <div class="flex bg-zinc-900 rounded-3xl p-1 mb-8">
+          <button onclick="toggleAuth(0)" id="login-tab" class="flex-1 py-4 rounded-3xl font-semibold bg-zinc-800">Login</button>
+          <button onclick="toggleAuth(1)" id="signup-tab" class="flex-1 py-4 rounded-3xl font-semibold">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+          <h2 class="text-3xl font-bold text-center mb-8">Welcome Back</h2>
+          <div class="space-y-6">
+            <input id="login-email" type="email" placeholder="you@example.com" class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 rounded-3xl px-6 py-5 outline-none">
+            <input id="login-password" type="password" placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 rounded-3xl px-6 py-5 outline-none">
+            <button onclick="handleLogin()" class="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-5 rounded-3xl text-lg">Login Securely</button>
+          </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="hidden">
+          <h2 class="text-3xl font-bold text-center mb-8">Create Account</h2>
+          <div class="space-y-6">
+            <input id="signup-email" type="email" placeholder="you@example.com" class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 rounded-3xl px-6 py-5 outline-none">
+            <input id="signup-password" type="password" placeholder="Create strong password" class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 rounded-3xl px-6 py-5 outline-none">
+            <button onclick="handleSignup()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-5 rounded-3xl text-lg">Create Account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ONBOARDING MODAL ==================== -->
+  <div id="onboarding-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
+    <div class="glass w-full max-w-2xl rounded-3xl p-10 max-h-[90vh] overflow-y-auto">
+      <h2 id="onboarding-title" class="text-3xl font-bold text-center mb-8"></h2>
+
+      <div id="step-passout">
+        <p class="text-zinc-400 text-center mb-8">When did you recently pass out?</p>
+        <button onclick="selectPassout(10)" class="w-full py-6 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-cyan-400 rounded-3xl text-left px-8 mb-4">I recently passed 10th Class</button>
+        <button onclick="selectPassout(12)" class="w-full py-6 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-cyan-400 rounded-3xl text-left px-8">I recently passed 12th Class</button>
+      </div>
+
+      <div id="step-10th" class="hidden">
+        <label class="block text-sm text-zinc-400 mb-3">Your 10th Class Marks (%)</label>
+        <input id="tenth-marks" type="number" min="40" max="100" placeholder="e.g. 82" class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-5 text-2xl text-center outline-none">
+        <button onclick="process10thMarks()" class="mt-8 w-full py-5 bg-violet-500 text-black font-semibold rounded-3xl text-lg">Show All Streams + Roadmaps</button>
+      </div>
+
+      <div id="step-12th" class="hidden text-center">
+        <button onclick="show12thRecommendation()" class="w-full py-6 bg-cyan-500 text-black font-bold rounded-3xl text-xl">Show All UG Branches & Roadmaps</button>
+      </div>
+
+      <div id="result-area" class="hidden mt-10"></div>
+
+      <button onclick="finishOnboarding()" class="mt-10 w-full text-zinc-400 hover:text-white flex items-center justify-center gap-2">
+        <i class="fas fa-arrow-right"></i> Go to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN DASHBOARD ==================== -->
+  <div id="main-dashboard" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 min-h-screen">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center text-black text-3xl font-bold">🌍</div>
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold neon-cyan">CareerForge</h1>
+          <p class="text-zinc-400">AI Career Decision Simulator • Full Stack + Problem Solving</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="openProfileModal()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black px-5 py-3 rounded-3xl font-medium"><i class="fas fa-magic"></i> Get AI Suggestions</button>
+        <button onclick="openStreamModal()" class="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-black px-5 py-3 rounded-3xl font-medium"><i class="fas fa-school"></i> Choose Intermediate Stream</button>
+        <button onclick="toggleChat()" class="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 px-5 py-3 rounded-3xl font-medium"><i class="fas fa-robot"></i> AI Mentor</button>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 mb-10">
+      <input id="search-input" type="text" placeholder="Search any career..." onkeypress="if(event.key==='Enter') handleSearch()" class="flex-1 bg-zinc-900 border border-zinc-700 focus:border-cyan-500 rounded-3xl px-6 py-5 text-base">
+      <button onclick="handleSearch()" class="bg-cyan-500 text-black px-8 rounded-3xl font-medium">Search</button>
+      <button onclick="showAllCareers()" class="bg-zinc-800 px-8 rounded-3xl font-medium">Show All</button>
+    </div>
+
+    <div id="career-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    <div id="detail-view" class="mt-16 hidden">
+      <button onclick="hideDetailView()" class="text-zinc-400 hover:text-white mb-4 flex items-center gap-2">← Back</button>
+      <div id="detail-content" class="glass rounded-3xl p-8"></div>
+    </div>
+
+    <div id="stream-result" class="mt-16 hidden">
+      <h2 class="text-3xl font-bold mb-6">Your Best Intermediate Stream</h2>
+      <div id="stream-card" class="glass rounded-3xl p-8"></div>
+    </div>
+
+    <div id="personalized-section" class="mt-16 hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold">Your Personalized Career Paths</h2>
+        <button onclick="resetPersonalized()" class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><i class="fas fa-trash"></i> Clear All</button>
+      </div>
+      <div id="personal-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+    </div>
+  </div>
+
+  <!-- Modals (Stream, Profile, Chat) -->
+  <div id="stream-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+    <div class="glass w-full max-w-xl rounded-3xl p-8">
+      <h3 class="text-2xl font-bold mb-6">10th Class → Intermediate Stream Suggestor</h3>
+      <div class="space-y-6">
+        <div><label class="block text-sm text-zinc-400 mb-2">Overall 10th Marks (%)</label><input id="overall-marks" type="number" min="40" max="100" placeholder="e.g. 82" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-sm text-zinc-400 mb-2">Maths Marks (%)</label><input id="maths-marks" type="number" min="0" max="100" placeholder="e.g. 85" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4"></div>
+          <div><label class="block text-sm text-zinc-400 mb-2">Science Marks (%)</label><input id="science-marks" type="number" min="0" max="100" placeholder="e.g. 78" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4"></div>
+        </div>
+        <div><label class="block text-sm text-zinc-400 mb-2">Any specific interest? (optional)</label><textarea id="interest-note" rows="2" placeholder="I like coding / biology / practical work..." class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-4"></textarea></div>
+      </div>
+      <div class="flex gap-3 mt-10">
+        <button onclick="closeStreamModal()" class="flex-1 py-4 border border-zinc-600 rounded-3xl">Cancel</button>
+        <button onclick="suggestStream()" class="flex-1 py-4 bg-violet-500 text-black rounded-3xl font-semibold">Get Suggestion</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+    <div class="glass w-full max-w-2xl rounded-3xl p-8">
+      <h3 class="text-2xl font-semibold mb-6">Tell us about yourself</h3>
+      <div class="space-y-6">
+        <div><label class="block text-sm text-zinc-400 mb-2">Your latest marks / CGPA (%)</label><input id="marks-input" type="number" min="40" max="100" placeholder="e.g. 85" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4"></div>
+        <div><label class="block text-sm text-zinc-400 mb-2">Your current education / field</label>
+          <select id="profile-education" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+            <option value="Computer Science">Computer Science / IT</option>
+            <option value="Fashion Design">Fashion Design / Creative Arts</option>
+            <option value="Culinary">Culinary / Hospitality</option>
+            <option value="Business">Business / Management</option>
+            <option value="Finance">Finance / Economics / CA</option>
+            <option value="Medical">Medical / Healthcare</option>
+            <option value="Education">Education / Teaching / Psychology</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-10">
+        <button onclick="closeProfileModal()" class="flex-1 py-4 border border-zinc-600 rounded-3xl">Cancel</button>
+        <button onclick="generateProfileSuggestions()" class="flex-1 py-4 bg-emerald-500 text-black rounded-3xl font-semibold">Get AI Suggestions</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chat-window" class="hidden fixed bottom-4 right-4 sm:right-8 w-[95vw] sm:w-96 h-[520px] glass rounded-3xl shadow-2xl flex flex-col z-50">
+    <div class="px-6 py-4 border-b border-zinc-700 flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
+      <div class="flex-1"><p class="font-semibold">Career Mentor AI</p><p class="text-emerald-400 text-xs">Ask me anything about careers</p></div>
+      <button onclick="toggleChat()" class="text-zinc-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+    </div>
+    <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-4 text-sm"></div>
+    <div class="p-4 border-t border-zinc-700">
+      <div class="flex gap-2">
+        <input id="chat-input" type="text" placeholder="Type your question..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-4 focus:outline-none focus:border-cyan-500" onkeypress="if(event.key==='Enter') sendChatMessage()">
+        <button onclick="sendChatMessage()" class="bg-cyan-500 text-black w-12 h-12 flex items-center justify-center rounded-3xl"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let registeredUsers = {};
+    let userEmail = "";
+
+    function toggleAuth(n) {
+      document.getElementById('login-form').classList.toggle('hidden', n === 1);
+      document.getElementById('signup-form').classList.toggle('hidden', n === 0);
+      document.getElementById('login-tab').classList.toggle('bg-zinc-800', n === 0);
+      document.getElementById('signup-tab').classList.toggle('bg-zinc-800', n === 1);
+    }
+
+    function handleSignup() {
+      const email = document.getElementById('signup-email').value.trim();
+      const pass = document.getElementById('signup-password').value.trim();
+      if (!email || !pass) return alert("Please fill email and password");
+      if (pass.length < 6) return alert("Password must be at least 6 characters");
+      registeredUsers[email] = pass;
+      alert("✅ Account created successfully! Now login with the same email & password.");
+      toggleAuth(0);
+    }
+
+    function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-password').value.trim();
+
+      if (!email || !pass) {
+        alert("Please enter both email and password");
+        return;
+      }
+
+      // WRONG EMAIL OR PASSWORD → Clear message
+      if (!registeredUsers[email] || registeredUsers[email] !== pass) {
+        alert("❌ The entered email or password is incorrect.");
+        return;
+      }
+
+      // Success
+      userEmail = email;
+      showOnboarding();
+    }
+
+    function showOnboarding() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('onboarding-modal').classList.remove('hidden');
+      document.getElementById('onboarding-title').innerHTML = `Welcome, <span class="text-cyan-400">${userEmail.split('@')[0]}</span>!`;
+    }
+
+    function selectPassout(level) {
+      document.getElementById('step-passout').classList.add('hidden');
+      if (level === 10) document.getElementById('step-10th').classList.remove('hidden');
+      else document.getElementById('step-12th').classList.remove('hidden');
+    }
+
+    function process10thMarks() {
+      const marks = parseFloat(document.getElementById('tenth-marks').value) || 70;
+      let html = `<h3 class="text-2xl font-bold mb-6 text-center">All Intermediate Streams + Roadmaps</h3><div class="grid grid-cols-1 gap-6">`;
+      const streams = [
+        {name:"MPC", color:"cyan", benefit:"Engineering, AI, Architecture", how:"Daily Maths & Physics practice", grow:"JEE + Coding → Software/AI Engineer"},
+        {name:"BiPC", color:"emerald", benefit:"Medical, Pharmacy, Biotech", how:"Strong Biology & Chemistry", grow:"NEET → Doctor / Scientist"},
+        {name:"CEC", color:"violet", benefit:"CA, Law, Banking, Management", how:"Master Accounts & Economics", grow:"CA/CS + MBA → Banker / Manager"},
+        {name:"MEC", color:"amber", benefit:"Maths + Economics + Commerce", how:"Balance Maths with Business", grow:"Data Analyst / Finance"},
+        {name:"HEC", color:"rose", benefit:"Humanities, Journalism, Psychology", how:"Writing & critical thinking", grow:"UPSC / Teaching / Media"},
+        {name:"Polytechnic", color:"teal", benefit:"Diploma → Job in 3 years", how:"Hands-on practical training", grow:"Lateral B.Tech + Early job"}
+      ];
+      streams.forEach(s => {
+        html += `<div class="glass rounded-3xl p-6"><h4 class="text-3xl font-bold text-${s.color}-400">${s.name}</h4><p class="text-zinc-300 mt-2"><strong>Best for:</strong> ${s.benefit}</p><p class="mt-3"><strong>How to perform:</strong> ${s.how}</p><p class="mt-2"><strong>How to grow:</strong> ${s.grow}</p></div>`;
+      });
+      html += `</div>`;
+      document.getElementById('result-area').innerHTML = html;
+      document.getElementById('result-area').classList.remove('hidden');
+    }
+
+    function show12thRecommendation() {
+      const html = `<h3 class="text-2xl font-bold mb-6 text-center">Popular UG Branches & Roadmaps</h3><div class="space-y-6">
+        <div class="glass rounded-3xl p-6"><h4 class="font-bold">B.Tech / B.E</h4><p class="text-emerald-400">Tech & Problem Solving</p><p><strong>Roadmap:</strong> 4 years → Internships → Software / AI Engineer</p></div>
+        <div class="glass rounded-3xl p-6"><h4 class="font-bold">MBBS / BDS</h4><p class="text-emerald-400">Medical Field</p><p><strong>Roadmap:</strong> NEET → 5.5 years → Doctor</p></div>
+        <div class="glass rounded-3xl p-6"><h4 class="font-bold">B.Com / BBA</h4><p class="text-emerald-400">Commerce & Management</p><p><strong>Roadmap:</strong> 3 years → CA / MBA → Manager</p></div>
+        <div class="glass rounded-3xl p-6"><h4 class="font-bold">B.Sc (Data Science / CS)</h4><p class="text-emerald-400">Analytics & Research</p><p><strong>Roadmap:</strong> 3 years → M.Sc → Data Scientist</p></div>
+        <div class="glass rounded-3xl p-6"><h4 class="font-bold">BA (Arts / Humanities)</h4><p class="text-emerald-400">Civil Services, Media, Teaching</p><p><strong>Roadmap:</strong> 3 years → UPSC / Journalism</p></div>
+      </div>`;
+      document.getElementById('result-area').innerHTML = html;
+      document.getElementById('result-area').classList.remove('hidden');
+    }
+
+    function finishOnboarding() {
+      document.getElementById('onboarding-modal').classList.add('hidden');
+      document.getElementById('main-dashboard').classList.remove('hidden');
+      populateCareers(careers);
+    }
+
+    // ==================== ORIGINAL DASHBOARD CODE ====================
+    let careers = [
+      { id:1, title:"Software Engineer", icon:"💻", salary:"₹12-28 LPA", growth:"125%", baseRisk:18 },
+      { id:2, title:"AI/ML Engineer", icon:"🤖", salary:"₹18-45 LPA", growth:"145%", baseRisk:14 },
+      { id:3, title:"Data Scientist", icon:"📊", salary:"₹10-35 LPA", growth:"135%", baseRisk:20 },
+      { id:4, title:"Cybersecurity Analyst", icon:"🔐", salary:"₹9-25 LPA", growth:"132%", baseRisk:12 },
+      { id:5, title:"Fashion Designer", icon:"👗", salary:"₹6-22 LPA", growth:"118%", baseRisk:25 },
+      { id:6, title:"Chef / Culinary Artist", icon:"🍳", salary:"₹5-20 LPA", growth:"115%", baseRisk:23 },
+      { id:7, title:"Business Analyst", icon:"📈", salary:"₹8-24 LPA", growth:"130%", baseRisk:16 },
+      { id:8, title:"Investment Banker", icon:"💰", salary:"₹12-60+ LPA", growth:"135%", baseRisk:22 },
+      { id:9, title:"Digital Marketing Specialist", icon:"📱", salary:"₹7-20 LPA", growth:"140%", baseRisk:19 },
+      { id:10, title:"Product Manager", icon:"🚀", salary:"₹15-40 LPA", growth:"128%", baseRisk:13 },
+      { id:11, title:"Doctor / Medical Specialist", icon:"🩺", salary:"₹15-50+ LPA", growth:"120%", baseRisk:10 },
+      { id:12, title:"Teacher / EdTech Specialist", icon:"📚", salary:"₹5-15 LPA", growth:"125%", baseRisk:18 },
+      { id:13, title:"Sustainable Entrepreneur", icon:"🌱", salary:"₹8-35 LPA", growth:"130%", baseRisk:28 },
+      { id:14, title:"UI/UX Designer", icon:"🎨", salary:"₹8-25 LPA", growth:"142%", baseRisk:17 },
+      { id:15, title:"Chartered Accountant", icon:"📋", salary:"₹10-30 LPA", growth:"122%", baseRisk:16 },
+      { id:16, title:"Cloud Architect", icon:"☁️", salary:"₹18-40 LPA", growth:"138%", baseRisk:15 }
+    ];
+
+    function populateCareers(list) {
+      const grid = document.getElementById('career-grid');
+      grid.innerHTML = '';
+      list.forEach(c => {
+        const card = document.createElement('div');
+        card.className = `career-card glass rounded-3xl p-6 cursor-pointer`;
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-4">
+              <div class="text-5xl">${c.icon}</div>
+              <div><h4 class="font-semibold text-xl">${c.title}</h4><p class="text-emerald-400">${c.salary}</p></div>
+            </div>
+            <div class="text-right">
+              <div class="text-emerald-400 text-xl font-medium">${c.growth}</div>
+              <div class="text-red-400 text-sm mt-1 flex items-center gap-1 justify-end"><i class="fas fa-bolt"></i> ${c.baseRisk}% risk</div>
+            </div>
+          </div>
+          <button onclick="showCareerDetail(${c.id}); event.stopImmediatePropagation()" class="mt-6 w-full py-3.5 bg-zinc-800 hover:bg-cyan-500 hover:text-black rounded-2xl text-sm font-medium">View Tips & Roadmap</button>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function showCareerDetail(id) {
+      const career = careers.find(c => c.id === id);
+      document.getElementById('detail-content').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6">${career.icon} ${career.title}</h2>
+        <p class="text-emerald-400 mb-8">Growth: ${career.growth} | Risk: ${career.baseRisk}%</p>
+        <h3 class="text-xl font-semibold mb-3">Tips to Grow Faster</h3>
+        <ul class="space-y-3 mb-8">
+          <li class="bg-zinc-900 p-4 rounded-2xl">• Build strong projects / portfolio</li>
+          <li class="bg-zinc-900 p-4 rounded-2xl">• Learn latest tools</li>
+          <li class="bg-zinc-900 p-4 rounded-2xl">• Network on LinkedIn</li>
+          <li class="bg-zinc-900 p-4 rounded-2xl">• Gain practical experience</li>
+        </ul>
+        <button onclick="hideDetailView()" class="w-full py-4 bg-zinc-800 rounded-3xl">Close</button>`;
+      document.getElementById('detail-view').classList.remove('hidden');
+      document.getElementById('career-grid').classList.add('hidden');
+    }
+
+    function hideDetailView() {
+      document.getElementById('detail-view').classList.add('hidden');
+      document.getElementById('career-grid').classList.remove('hidden');
+    }
+
+    function showAllCareers() { document.getElementById('search-input').value = ''; populateCareers(careers); }
+    function handleSearch() {
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      if (!query) return showAllCareers();
+      const found = careers.find(c => c.title.toLowerCase().includes(query));
+      populateCareers(found ? [found] : [{id: Date.now(), title: query.charAt(0).toUpperCase() + query.slice(1), icon:"🔍", salary:"₹8-25 LPA", growth:"125%", baseRisk:20}]);
+    }
+
+    function openStreamModal() { document.getElementById('stream-modal').classList.remove('hidden'); }
+    function closeStreamModal() { document.getElementById('stream-modal').classList.add('hidden'); }
+    function suggestStream() { alert("Stream suggestion generated!"); closeStreamModal(); }
+
+    function openProfileModal() { document.getElementById('profile-modal').classList.remove('hidden'); }
+    function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+    function generateProfileSuggestions() { alert("✅ AI Suggestions Generated!"); closeProfileModal(); }
+
+    function toggleChat() { document.getElementById('chat-window').classList.toggle('hidden'); }
+    function sendChatMessage() { alert("AI Mentor: Great question! Try the buttons above."); }
+
+    window.onload = () => { toggleAuth(0); };
+  </script>
+</body>
+</html>
