@@ -23,6 +23,10 @@ CareerForge is an advanced AI-powered career decision simulator that helps users
 - A modern web browser (Chrome, Firefox, Safari, Edge)
 - Internet connection (for CDN resources)
 
+## Live Demo
+View the deployed project on Netlify:
+- https://frabjous-rugelach-d1bedf.netlify.app/
+
 ### Installation
 1. Clone the repository:
 ```bash
